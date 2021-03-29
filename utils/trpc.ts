@@ -1,3 +1,5 @@
+global.fetch = require('node-fetch');
+
 import { createReactQueryHooks, createTRPCClient } from '@trpc/react';
 import type { inferProcedureOutput } from '@trpc/server';
 import { QueryClient } from 'react-query';

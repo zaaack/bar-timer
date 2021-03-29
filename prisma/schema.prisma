@@ -10,11 +10,20 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model Task {
-  id        String  @id @default(uuid())
-  text      String
-  completed Boolean @default(value: "false")
+model Alarm {
+  id String @id @default(uuid())
+  type String // 类型 once|repeat
+  ahead Int // 提前多长时间提醒
+  title String
+  notify Boolean @default(true)
+  alert Boolean @default(false)
+  duration Int @default(0)
+  timeout Int @default(0)
+  done Boolean @default(false)
+  disabled Boolean @default(false)
+  sort Int @default(0)
+  uid String @default("")
 
-  createdAt DateTime @unique @default(now())
-  // updatedAt DateTime @unique @default(now())
+  @@index([sort])
+  @@index([uid])
 }

@@ -1,11 +1,12 @@
 module.exports = {
+  trailingSlash: true,
   async redirects() {
     return [
-      {
-        source: '/',
-        destination: '/all',
-        permanent: false,
-      },
+      // {
+      //   source: '/:path*',
+      //   destination: '/',
+      //   permanent: true,
+      // },
     ]
   },
 }
