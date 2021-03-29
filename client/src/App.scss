@@ -1,0 +1,41 @@
+@import './list/index.scss';
+@import 'rc-time-picker/assets/index.css';
+
+.root {
+}
+
+.container {
+  max-width: 600px!important;
+  & > div {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+}
+.form {
+  padding: 15px;
+}
+  a.panel-block:hover, label.panel-block:hover {
+      background: unset;
+  }
+
+  a.panel-block, label.panel-block {
+      cursor: default;
+  }
+  .fade-enter {
+      transform:  translateX(100%);
+    }
+
+    .fade-enter.fade-enter-active {
+      transform:  translateX(0);
+      transition: transform 300ms ease-in;
+    }
+  .field.is-grouped {
+    align-items: center;
+    .label:not(:last-child) {
+      margin: 0;
+    }
+    .control {
+      margin-left: 10px;
+    }
+  }

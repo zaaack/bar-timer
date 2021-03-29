@@ -1,0 +1,14 @@
+{
+  "extends": [],
+  "rules": {
+  },
+  "overrides": [
+    {
+      "files": ["**/*.ts?(x)"],
+      "rules": {
+          "no-restricted-globals": 0,
+          "import/first": 0
+      }
+    }
+  ]
+}
