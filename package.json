@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "cd ./client;yarn start",
     "build": "yarn migrate && prisma generate",
-    "start": "yarn migrate && prisma generate && ts-node ./server",
+    "start": "ts-node ./server",
     "server": "ts-node ./server",
     "studio": "prisma studio",
     "migrate-dev": "prisma migrate dev --preview-feature",
