@@ -19,12 +19,14 @@ app.use(
     teardown: () => prisma.$disconnect(),
     transformer: superjson,
     onError({ error }) {
+      console.error(error)
       if (error.code === 'INTERNAL_SERVER_ERROR') {
         // send to bug reporting
       }
     },
   })
 )
+
 app.use(express.static(path.join(__dirname, '../client/build')))
 app.get('/*', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/build', 'index.html'))
