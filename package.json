@@ -1,10 +1,11 @@
 {
-  "name": "@examples/todo-web",
-  "version": "4.0.0-alpha.2",
+  "name": "bar-alarm",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "cd ./client;yarn start",
     "build": "yarn migrate && prisma generate",
+    "build:client": "cd ./client; yarn build",
     "start": "ts-node ./server",
     "server": "ts-node ./server",
     "studio": "prisma studio",

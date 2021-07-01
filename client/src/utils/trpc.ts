@@ -16,7 +16,13 @@ export const client = createTRPCClient<AppRouter>({
 // create react query hooks for trpc
 export const trpc = createReactQueryHooks({
   client,
-  queryClient: new QueryClient(),
+  queryClient: new QueryClient({
+    defaultOptions: {
+      queries: {
+        refetchOnWindowFocus: false,
+      },
+    }
+  }),
 });
 
 /**

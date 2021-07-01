@@ -6,7 +6,7 @@ import { trpc } from '../utils/trpc'
 import type { Alarm } from '../../../node_modules/.prisma/client'
 import { useHistory } from 'react-router-dom'
 import { nanoid } from 'nanoid'
-import { AlarmEditParam, uid } from '../utils'
+import { AlarmCreateParam, AlarmEditParam, uid } from '../utils'
 import { AlarmManager } from '../alarm-manager'
 
 export function List() {
@@ -35,7 +35,7 @@ export function List() {
       await trpc.cancelQuery(['alarms.all'])
       trpc.setQueryData(
         ['alarms.all'],
-        allAlarms.data!.filter((t) => t.id != alarmId)
+        allAlarms.data!.filter((t) => t.id !== alarmId)
       )
     },
     onSettled: () => {
@@ -68,10 +68,17 @@ export function List() {
         <button
           className="button is-link is-small"
           style={{ marginRight: 10 }}
-          title="保存永久链接"
-          onClick={(e) => {
+          title="使用永久链接"
+          onClick={async (e) => {
             let u = new URL(location.href)
-            u.searchParams.append('id', nanoid())
+            const uid = nanoid()
+            await Promise.all(allAlarms.data?.map(a => {
+              return trpc.client.mutation('alarms.add', {
+                ...a,
+                uid
+              } as AlarmCreateParam)
+            }) || [])
+            u.searchParams.set('id', uid)
             location.href = u.toString()
           }}
         >
