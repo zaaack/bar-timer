@@ -37,6 +37,11 @@ export class AlarmManager {
     }
     this.timers.delete(alarm.id)
   }
+  destroy() {
+    for (const alarm of this.alarms) {
+        this.clearTimers(alarm)
+    }
+  }
   updateTimers() {
     for (const alarm of this.alarms) {
       if (alarm.disabled || alarm.done) {

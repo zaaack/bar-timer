@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import dayjs from 'dayjs'
+import cx from 'clsx'
 
 import { ReactSortable } from 'react-sortablejs'
 import { trpc } from '../utils/trpc'
@@ -10,76 +11,80 @@ import { AlarmCreateParam, AlarmEditParam, uid } from '../utils'
 import { AlarmManager } from '../alarm-manager'
 
 export function List() {
-  let history = useHistory()
+  const history = useHistory()
+  const [isLoading, setIsLoading] = useState(false)
+  const sortTimerRef = useRef<NodeJS.Timer| null>(null)
   const allAlarms = trpc.useQuery(['alarms.all', uid], {
-    staleTime: 3000,
+    staleTime: 10000,
   })
+  const alarmManager = useRef<AlarmManager | null>(null)
   const sortAlarms = trpc.useMutation('alarms.sortAll', {
-    async onMutate(ids) {
-      await trpc.cancelQuery(['alarms.all'])
-      let alarmMap = new Map(allAlarms.data?.map((a) => [a.id, a]))
-      trpc.setQueryData(
-        ['alarms.all'],
-        ids.map((id) => alarmMap.get(id)!).filter(Boolean)
-      )
-    },
     onSettled: () => {
-      trpc.invalidateQuery(['alarms.all'])
+      trpc.invalidateQuery(['alarms.all', uid])
     },
   })
   const saveSortList = async (newAlarms: Alarm[]) => {
-    sortAlarms.mutate(newAlarms.map((a) => a.id))
+    const ids = newAlarms.map((a) => a.id)
+    let alarmMap = new Map(allAlarms.data?.map((a) => [a.id, a]))
+    trpc.setQueryData(
+      ['alarms.all', uid],
+      ids.map((id) => alarmMap.get(id)!).filter(Boolean)
+    )
+    sortTimerRef.current&& clearTimeout(sortTimerRef.current)
+    sortTimerRef.current = setTimeout(() => {
+      sortAlarms.mutate(ids)
+    }, 1000)
   }
   const deleteAlarm = trpc.useMutation('alarms.delete', {
-    async onMutate(alarmId) {
-      await trpc.cancelQuery(['alarms.all'])
-      trpc.setQueryData(
-        ['alarms.all'],
-        allAlarms.data!.filter((t) => t.id !== alarmId)
-      )
-    },
     onSettled: () => {
-      trpc.invalidateQuery(['alarms.all'])
+      trpc.invalidateQuery(['alarms.all', uid])
+      allAlarms.refetch()
     },
   })
   const editAlarm = trpc.useMutation('alarms.edit', {
-    async onMutate(alarm) {
-      await trpc.cancelQuery(['alarms.all'])
-      trpc.setQueryData(
-        ['alarms.all'],
-        allAlarms.data!.map((a) => (a.id === alarm.id ? { ...a, ...alarm } : a))
-      )
-    },
     onSettled: () => {
-      trpc.invalidateQuery(['alarms.all'])
+      trpc.invalidateQuery(['alarms.all', uid])
+      allAlarms.refetch()
     },
   })
   useEffect(() => {
     if (allAlarms.data) {
-      new AlarmManager(allAlarms.data, (a: AlarmEditParam) => {
+      alarmManager.current = new AlarmManager(allAlarms.data, (a: AlarmEditParam) => {
         editAlarm.mutate(a)
       })
+      return () => {
+        alarmManager.current?.destroy()
+      }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allAlarms.data])
+  if (!allAlarms.data?.length) {
+    return null
+  }
   return (
     <nav className="panel">
       <p className="panel-heading">
         <span style={{ flex: 1 }}>整点报时</span>
         <button
-          className="button is-link is-small"
+          className={cx(`button is-link is-small`, isLoading && `is-loading`)}
           style={{ marginRight: 10 }}
           title="使用永久链接"
+          disabled={isLoading}
           onClick={async (e) => {
+            setIsLoading(true)
             let u = new URL(location.href)
             const uid = nanoid()
             await Promise.all(allAlarms.data?.map(a => {
-              return trpc.client.mutation('alarms.add', {
+              const newAlarm = {
                 ...a,
                 uid
-              } as AlarmCreateParam)
+              } as AlarmCreateParam
+              delete newAlarm['id']
+              return trpc.client.mutation('alarms.add', newAlarm)
             }) || [])
             u.searchParams.set('id', uid)
             location.href = u.toString()
+            setIsLoading(false)
           }}
         >
           <i className="fas fa-external-link-alt" aria-hidden="true"></i>
@@ -94,7 +99,7 @@ export function List() {
           <i className="fas fa-plus" aria-hidden="true"></i>
         </button>
       </p>
-      <ReactSortable list={allAlarms.data || []} setList={saveSortList}>
+      <ReactSortable list={allAlarms.data || []} setList={saveSortList} >
         {allAlarms.data?.map((a) => {
           return (
             <a key={a.id} className="panel-block">

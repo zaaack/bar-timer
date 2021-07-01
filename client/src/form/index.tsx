@@ -24,16 +24,13 @@ export function Form() {
 
   const editAlarm = trpc.useMutation('alarms.edit', {
     onSettled: () => {
-      trpc.invalidateQuery(['alarms.all']);
+      trpc.invalidateQuery(['alarms.all', uid]);
     },
   })
 
   const addAlarm = trpc.useMutation('alarms.add', {
-    async onMutate(alarm) {
-      await trpc.cancelQuery(['alarms.all']);
-    },
     onSettled: () => {
-      trpc.invalidateQuery(['alarms.all']);
+      trpc.invalidateQuery(['alarms.all', uid]);
     },
   })
 
